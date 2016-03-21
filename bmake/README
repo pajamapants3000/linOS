@@ -1,0 +1,13 @@
+bmake README
+*************
+
+This is the make program used by some of the *BSDs, and the one expected by
+elftoolchain, the non-GNU binutils I am attempting to use for this system.
+
+Since I am also not using gcc, bmake needs a special set of definitions to
+fit the compiler I am using. I have started out using TCC, so I currently
+have two include files: one for tcc in the initial toolchain used to build
+linOS, and another for the actual linOS system. Just copy the appropriate
+version to bmake/mk/sys/Linux.mk, replacing the file the is already there.
+Hopefully this works!
+
