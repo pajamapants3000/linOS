@@ -117,10 +117,10 @@ APICFLAGS?= -k
 
 # Platform-independent linker flags for ELF shared libraries
 .if ${OBJECT_FMT} == "ELF"
-SHLIB_SOVERSION=	${SHLIB_MAJOR}
-SHLIB_SHFLAGS=		-soname lib${LIB}.so.${SHLIB_SOVERSION}
-SHLIB_LDSTARTFILE?=	/usr/lib/crtbeginS.o
-SHLIB_LDENDFILE?=	/usr/lib/crtendS.o
+SHLIB_SOVERSION=
+SHLIB_SHFLAGS=
+SHLIB_LDSTARTFILE?=
+SHLIB_LDENDFILE?=
 .endif
 
 # for compatibility with the following
@@ -418,7 +418,7 @@ SHLIB_AGE?=0
 # naming the output...
 lib${LIB}.a:: ${OBJS}
 	@rm -f ${.TARGET}
-	${LIBTOOL} --mode=link ${CC} ${LT_STATIC} -o ${.TARGET:.a=.la} ${OBJS:.o=.lo} -rpath ${SHLIBDIR}:/usr/lib -version-info ${SHLIB_MAJOR}:${SHLIB_MINOR}:${SHLIB_AGE}
+	${LIBTOOL} --mode=link ${CC} ${LT_STATIC} -o ${.TARGET:.a=.la} ${OBJS:.o=.lo} -rpath ${SHLIBDIR}:/tools/lib -version-info ${SHLIB_MAJOR}:${SHLIB_MINOR}:${SHLIB_AGE}
 	@ln .libs/${.TARGET} .
 
 lib${LIB}.${LD_so}:: lib${LIB}.a
