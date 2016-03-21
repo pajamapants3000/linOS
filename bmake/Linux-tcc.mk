@@ -29,7 +29,7 @@ LINK.S=		${CC} ${AFLAGS} ${CPPFLAGS} ${LDFLAGS}
 CC=		tcc
 DBG=		-g
 STATIC=		-static
-CFLAGS=		${DBG}
+CFLAGS=		${DBG} -U__GNUC__
 COMPILE.c=	${CC} ${CFLAGS} ${CPPFLAGS} -c
 LINK.c=		${CC} ${CFLAGS} ${CPPFLAGS} ${LDFLAGS}
 
