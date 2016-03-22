@@ -40,7 +40,7 @@ CC_PG=
 CXX_PG?= ${CC_PG}
 CC_PIC=
 CXX_PIC?= ${CC_PIC}
-PROFFLAGS?= -DGPROF -DPROF
+PROFFLAGS=
 
 .if ${.MAKE.LEVEL:U1} == 0 && ${BUILD_AT_LEVEL0:Uyes:tl} == "no"
 # this tells lib.mk and prog.mk to not actually build anything

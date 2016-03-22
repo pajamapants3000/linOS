@@ -11,3 +11,5 @@ linOS, and another for the actual linOS system. Just copy the appropriate
 version to bmake/mk/sys/Linux.mk, replacing the file the is already there.
 Hopefully this works!
 
+auto* and init.mk and lib.mk go in mk/
+
