@@ -41,7 +41,7 @@ SHLIB_FULLVERSION := ${SHLIB_FULLVERSION}
 # add additional suffixes not exported.
 # .po is used for profiling object files.
 # .so is used for PIC object files.
-.SUFFIXES: .out .a .ln .so .po .o .s .S .c .cc .C .m .F .f .r .y .l .cl .p .h
+.SUFFIXES: .out .a .ln .so .o .s .S .c .cc .C .m .F .f .r .y .l .cl .p .h
 .SUFFIXES: .sh .m4 .m
 
 CFLAGS+=	${COPTS}
@@ -163,14 +163,12 @@ LD_so=sl
 DLLIB=
 # HPsUX lorder does not grok anything but .o
 LD_sobjs=`${LORDER} ${OBJS} | ${TSORT} | sed 's,\.o,.so,'`
-LD_pobjs=`${LORDER} ${OBJS} | ${TSORT} | sed 's,\.o,.po,'`
 .elif ${TARGET_OSNAME} == "OSF1"
 LD_shared= -msym -shared -expect_unresolved '*'
 LD_solib= -all lib${LIB}_pic.a
 DLLIB=
 # lorder does not grok anything but .o
 LD_sobjs=`${LORDER} ${OBJS} | ${TSORT} | sed 's,\.o,.so,'`
-LD_pobjs=`${LORDER} ${OBJS} | ${TSORT} | sed 's,\.o,.po,'`
 AR_cq= -cqs
 .elif ${TARGET_OSNAME} == "FreeBSD"
 LD_solib= lib${LIB}_pic.a
@@ -281,27 +279,10 @@ SHLIB_AGE != . ${.CURDIR}/shlib_version ; echo $$age
 	@${COMPILE.S} ${CFLAGS:M-[ID]*} ${AINC} ${.IMPSRC} 
 
 .if (${LD_X} == "")
-.c.po:
-	${COMPILE.c} ${CC_PG} ${PROFFLAGS} ${.IMPSRC} -o ${.TARGET}
-
-.cc.po .C.po:
-	${COMPILE.cc} -o ${.TARGET}
 
 .S.so .s.so:
 	${COMPILE.S} ${PICFLAG} ${CC_PIC} ${CFLAGS:M-[ID]*} ${AINC} ${.IMPSRC} -o ${.TARGET}
 .else
-.c.po:
-	@echo ${COMPILE.c} ${CC_PG} ${PROFFLAGS} ${.IMPSRC} -o ${.TARGET}
-	@${COMPILE.c} ${CC_PG} ${PROFFLAGS} ${.IMPSRC} -o ${.TARGET}.o
-	@${LD} ${LD_X} ${LD_r} ${.TARGET}.o -o ${.TARGET}
-	@rm -f ${.TARGET}.o
-
-.cc.po .C.po:
-	@echo ${COMPILE.cc} ${CXX_PG} ${PROFFLAGS} ${.IMPSRC} -o ${.TARGET}
-	@${COMPILE.cc} ${CXX_PG} ${.IMPSRC} -o ${.TARGET}.o
-	@${LD} ${LD_X} ${LD_r} ${.TARGET}.o -o ${.TARGET}
-	@rm -f ${.TARGET}.o
-
 .S.so .s.so:
 	@echo ${COMPILE.S} ${PICFLAG} ${CC_PIC} ${CFLAGS:M-[ID]*} ${AINC} ${.IMPSRC} -o ${.TARGET}
 	@${COMPILE.S} ${PICFLAG} ${CC_PIC} ${CFLAGS:M-[ID]*} ${AINC} ${.IMPSRC} -o ${.TARGET}.o
@@ -316,8 +297,6 @@ SHLIB_AGE != . ${.CURDIR}/shlib_version ; echo $$age
 .cc.so .C.so:
 	${COMPILE.cc} ${PICFLAG} ${CC_PIC} ${.IMPSRC} -o ${.TARGET}
 
-.S.po .s.po:
-	${COMPILE.S} ${PROFFLAGS} ${CFLAGS:M-[ID]*} ${AINC} ${.IMPSRC} -o ${.TARGET}
 .else
 
 .c.so:
@@ -330,12 +309,6 @@ SHLIB_AGE != . ${.CURDIR}/shlib_version ; echo $$age
 	@echo ${COMPILE.cc} ${PICFLAG} ${CC_PIC} ${.IMPSRC} -o ${.TARGET}
 	@${COMPILE.cc} ${PICFLAG} ${CC_PIC} ${.IMPSRC} -o ${.TARGET}.o
 	@${LD} ${LD_x} ${LD_r} ${.TARGET}.o -o ${.TARGET}
-	@rm -f ${.TARGET}.o
-
-.S.po .s.po:
-	@echo ${COMPILE.S} ${PROFFLAGS} ${CFLAGS:M-[ID]*} ${AINC} ${.IMPSRC} -o ${.TARGET}
-	@${COMPILE.S} ${PROFFLAGS} ${CFLAGS:M-[ID]*} ${AINC} ${.IMPSRC} -o ${.TARGET}.o
-	@${LD} ${LD_X} ${LD_r} ${.TARGET}.o -o ${.TARGET}
 	@rm -f ${.TARGET}.o
 
 .endif
@@ -358,7 +331,7 @@ _LIBS += lib${LIB}.a
 
 .if ${MK_PROFILE} != "no"
 _LIBS+=lib${LIB}_p.a
-POBJS+=${OBJS:.o=.po}
+POBJS+=
 .endif
 
 .if ${MK_PIC} != "no"
@@ -396,7 +369,7 @@ prebuild:
 all: _SUBDIRUSE
 
 .for s in ${SRCS:N*.h:M*/*}
-${.o .so .po .lo:L:@o@${s:T:R}$o@}: $s
+${.o .so .lo:L:@o@${s:T:R}$o@}: $s
 .endfor
 
 OBJS+=	${SRCS:T:N*.h:R:S/$/.o/g}
@@ -433,14 +406,7 @@ lib${LIB}.a:: ${OBJS}
 	@${AR} ${AR_cq} ${.TARGET} ${LD_objs}
 	${RANLIB} ${.TARGET}
 
-POBJS+=	${OBJS:.o=.po}
-.NOPATH:	${POBJS}
-lib${LIB}_p.a:: ${POBJS}
-	@echo building profiled ${LIB} library
-	@rm -f ${.TARGET}
-	@${AR} ${AR_cq} ${.TARGET} ${LD_pobjs}
-	${RANLIB} ${.TARGET}
-
+POBJS+=
 SOBJS+=	${OBJS:.o=.so}
 .NOPATH:	${SOBJS}
 lib${LIB}_pic.a:: ${SOBJS}
@@ -502,7 +468,7 @@ cleandir: _SUBDIRUSE clean
 .if defined(SRCS) && (!defined(MKDEP) || ${MKDEP} != autodep)
 afterdepend: .depend
 	@(TMP=/tmp/_depend$$$$; \
-	    sed -e 's/^\([^\.]*\).o[ ]*:/\1.o \1.po \1.so \1.ln:/' \
+	    sed -e 's/^\([^\.]*\).o[ ]*:/\1.o \1.so \1.ln:/' \
 	      < .depend > $$TMP; \
 	    mv $$TMP .depend)
 .endif
